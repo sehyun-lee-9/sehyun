@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>국내 물류센터 개발 동향 인포그래픽</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices: 
+        Section 1 (시장 개요): Data: Key market stats (2023 신규 공급, 총 연면적, 2024 수도권 전망). Goal: Inform. Viz: Single Big Numbers. Justification: High impact. Method: HTML/Tailwind. NO SVG.
+        Section 2 (건설 지연): Data: 2023 건축허가/착공/완공 건수, 잠재적 공급 물량(Shadow Pipeline) GFA. Goal: Compare/Inform. Viz: Bar Chart (허가/착공/완공), Single Big Number (잠재 물량). Justification: Bar chart for disparity, Big Number for impact. Method: Chart.js Canvas, HTML/Tailwind. NO SVG.
+        Section 3 (건설 기간 분석): Data: 주요 4개 센터 연면적/소요기간, 영향 요인. Goal: Relationships/Inform. Viz: Scatter Plot (연면적 vs. 기간), HTML list for factors. Justification: Scatter for correlation, list for clarity. Method: Chart.js Canvas, HTML/Tailwind. NO SVG.
+        Section 4 (주요 사례): Data: 보고서 표1 간소화 (명칭, 연면적, 기간, 특징). Goal: Organize/Compare. Viz: HTML Table. Justification: Structured data. Method: HTML/Tailwind. NO SVG.
+        Section 5 (규모 및 특징): Data: 대형화 추세 (>10만㎡), 주요 사례. Goal: Inform. Viz: Text with highlighted stats/examples. Justification: Narrative explanation. Method: HTML/Tailwind. NO SVG.
+        Section 6 (결론 및 전망): Data: 시장 이중성 요약, 향후 전망. Goal: Inform. Viz: Text. Justification: Concluding remarks. Method: HTML/Tailwind. NO SVG.
+        CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. 
+    -->
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #F8F9FA; color: #2D3748; scroll-behavior: smooth; }
+        .sticky-nav { position: sticky; top: 0; z-index: 50; background-color: rgba(255,255,255,0.95); backdrop-filter: blur(8px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .nav-link { padding: 0.75rem 1rem; font-size: 0.875rem; color: #4A5568; transition: color 0.3s, border-bottom-color 0.3s; border-bottom: 2px solid transparent; }
+        .nav-link.active, .nav-link:hover { color: #4A90E2; border-bottom-color: #4A90E2; }
+        .section-title { font-size: 2.25rem; font-weight: 700; color: #4A90E2; margin-bottom: 1.5rem; text-align: center; }
+        .card { background-color: #FFFFFF; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); padding: 2rem; margin-bottom: 2rem; }
+        .stat-value { font-size: 2.5rem; font-weight: 700; color: #50E3C2; }
+        .stat-label { font-size: 1rem; color: #4A5568; margin-top: 0.25rem; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 400px; } }
+        .table-responsive { overflow-x: auto; }
+        table th, table td { padding: 0.75rem 1rem; border: 1px solid #E2E8F0; text-align: left; font-size: 0.9rem; }
+        table th { background-color: #EDF2F7; font-weight: 600; color: #4A5568; }
+        .factor-item { background-color: #F0F4F8; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="sticky-nav">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <ul class="flex items-center justify-center space-x-2 sm:space-x-4 py-3">
+                <li><a href="#overview" class="nav-link active">시장 개요</a></li>
+                <li><a href="#delays" class="nav-link">건설 지연</a></li>
+                <li><a href="#duration-analysis" class="nav-link">기간 분석</a></li>
+                <li><a href="#examples" class="nav-link">주요 사례</a></li>
+                <li><a href="#scale-features" class="nav-link">규모와 특징</a></li>
+                <li><a href="#outlook" class="nav-link">결론 및 전망</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+        <section id="overview" class="pt-16 -mt-16">
+            <h2 class="section-title">국내 물류센터 시장 개요</h2>
+            <p class="text-center text-lg text-gray-600 mb-12 max-w-3xl mx-auto">
+                최근 국내 물류센터 시장은 공급 확대와 함께 건설 프로젝트 착수 지연이라는 상반된 특징을 보이고 있습니다. 본 인포그래픽은 이러한 시장의 주요 동향과 데이터를 시각적으로 분석하여 제공합니다.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 text-center mb-12">
+                <div class="card">
+                    <div class="stat-value">724만㎡</div>
+                    <div class="stat-label">2023년 전국 신규 공급</div>
+                    <p class="text-sm text-gray-500 mt-1">2022년 대비 약 25% 증가</p>
+                </div>
+                <div class="card">
+                    <div class="stat-value">3,567만㎡</div>
+                    <div class="stat-label">2023년 말 전국 총 연면적</div>
+                </div>
+                <div class="card">
+                    <div class="stat-value">395만㎡</div>
+                    <div class="stat-label">2024년 수도권 신규 공급 전망</div>
+                    <p class="text-sm text-gray-500 mt-1">2023년 대비 약 34% 감소 예상</p>
+                </div>
+            </div>
+             <p class="text-center text-gray-700 leading-relaxed max-w-3xl mx-auto">
+                2023년은 물류센터 공급이 크게 늘었으나, 2024년에는 다소 둔화될 전망입니다. 이는 시장이 급격한 팽창 이후 조정 국면에 들어서고 있음을 시사합니다.
+            </p>
+        </section>
+
+        <hr class="my-16 border-gray-300">
+
+        <section id="delays" class="pt-16 -mt-16">
+            <h2 class="section-title">핵심 과제: 건설 지연 문제</h2>
+            <p class="text-center text-lg text-gray-600 mb-12 max-w-3xl mx-auto">
+                물류센터 공급 확대 이면에는 심각한 "착공 지연" 문제가 자리 잡고 있습니다. 금리 인상, 공사비 급등, PF 시장 경색 등이 주요 원인입니다.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-center">
+                <div class="card">
+                    <h3 class="text-xl font-semibold text-center mb-4 text-gray-700">2023년 건축허가 대비 착공 현황</h3>
+                    <div class="chart-container" style="max-width: 500px;">
+                        <canvas id="approvalStartsChart"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-4 text-center">건축허가 357건 대비 실제 착공은 14건, 완공은 2건에 불과했습니다.</p>
+                </div>
+                <div class="card text-center">
+                    <div class="text-6xl font-bold text-red-500 mb-3">~2,740만㎡</div>
+                    <div class="text-xl font-semibold text-gray-700 mb-2">잠재적 공급 물량 (Shadow Pipeline)</div>
+                    <p class="text-gray-600">2023년 기준, 인허가를 받았으나 착공하지 못한 물류센터 면적입니다. (약 830만 평)</p>
+                    <p class="text-sm text-gray-500 mt-3">이는 2022-2023년 사이 건축허가 면적 기준 95%가 첫 삽을 뜨지 못한 것과 유사한 맥락입니다.</p>
+                </div>
+            </div>
+            <p class="text-center text-gray-700 leading-relaxed max-w-3xl mx-auto mt-8">
+                이러한 "잠재적 공급 물량"은 향후 시장 상황 개선 시 공급 과잉을, 상황 악화 시 사업 무산 가능성을 내포하여 시장 불확실성을 높이고 있습니다.
+            </p>
+        </section>
+
+        <hr class="my-16 border-gray-300">
+
+        <section id="duration-analysis" class="pt-16 -mt-16">
+            <h2 class="section-title">건설 기간 심층 분석</h2>
+            <p class="text-center text-lg text-gray-600 mb-12 max-w-3xl mx-auto">
+                물류센터 착공부터 준공까지 실제 소요 기간은 다양한 요인에 따라 달라집니다. 평균적으로 10개월에서 24개월 이상 소요됩니다.
+            </p>
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
+                <div class="lg:col-span-3 card">
+                     <h3 class="text-xl font-semibold text-center mb-4 text-gray-700">주요 물류센터 연면적 대비 건설 기간</h3>
+                    <div class="chart-container">
+                        <canvas id="durationScatterChart"></canvas>
+                    </div>
+                     <p class="text-sm text-gray-600 mt-4 text-center">안성 대덕 A동은 대규모임에도 약 10개월로 빠른 완공을 보였습니다.</p>
+                </div>
+                <div class="lg:col-span-2 card">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-700">건설 기간 영향 요인</h3>
+                    <ul class="space-y-2">
+                        <li class="factor-item"><strong>규모 (연면적):</strong> 클수록 기간 증가 경향</li>
+                        <li class="factor-item"><strong>복잡성:</strong> 온도조절, 자동화 설비 등은 기간 증가</li>
+                        <li class="factor-item"><strong>건설 공법:</strong> PC공법 등은 기간 단축 기여</li>
+                        <li class="factor-item"><strong>시공사 역량:</strong> 경험과 관리능력 중요</li>
+                        <li class="factor-item"><strong>예상치 못한 변수:</strong> 기상, 자재수급, 설계변경 등</li>
+                    </ul>
+                    <p class="text-sm text-gray-600 mt-4">
+                        특히, 안성 대덕 물류센터 A동(약 18.7만㎡)은 PC공법 활용, 효율적 관리, 상온 전용 특성 등으로 10개월 만에 준공되어 주목할 만합니다. 이는 철저한 사전 준비의 중요성을 시사합니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <hr class="my-16 border-gray-300">
+
+        <section id="examples" class="pt-16 -mt-16">
+            <h2 class="section-title">주요 물류센터 건설 사례</h2>
+            <p class="text-center text-lg text-gray-600 mb-12 max-w-3xl mx-auto">
+                최근 완공되었거나 계획 중인 주요 물류센터들의 정보를 통해 시장 동향을 파악할 수 있습니다. (데이터: 보고서 표1 기반)
+            </p>
+            <div class="card table-responsive">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th>물류센터 명칭</th>
+                            <th>연면적 (㎡)</th>
+                            <th>착공 시점</th>
+                            <th>준공 시점</th>
+                            <th>소요 기간 (개월)</th>
+                            <th>주요 특징</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td>A물류센터</td>
+                            <td>54,000</td>
+                            <td>2020년</td>
+                            <td>2021년</td>
+                            <td>약 12</td>
+                            <td>저온/상온 복합</td>
+                        </tr>
+                        <tr>
+                            <td>현대건설 창원 두동</td>
+                            <td>54,756</td>
+                            <td>2020년 10월</td>
+                            <td>2022년 1월</td>
+                            <td>약 15</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>현대건설 인천 검단</td>
+                            <td>149,000</td>
+                            <td>2021년 3월</td>
+                            <td>2022년 12월</td>
+                            <td>약 20-21</td>
+                            <td>복합</td>
+                        </tr>
+                        <tr>
+                            <td>안성 대덕 A동</td>
+                            <td>187,227</td>
+                            <td>2022년 8월</td>
+                            <td>2023년 6월</td>
+                            <td>약 10</td>
+                            <td>상온 100%, PC공법</td>
+                        </tr>
+                        <tr>
+                            <td>오산 로지폴리스</td>
+                            <td>150,374</td>
+                            <td>2020년 말 (예정)</td>
+                            <td>2022년 10월</td>
+                            <td>약 22-24</td>
+                            <td>복합</td>
+                        </tr>
+                         <tr>
+                            <td>청라로지스틱스센터</td>
+                            <td>430,253</td>
+                            <td>-</td>
+                            <td>2022년 12월</td>
+                            <td>계산불가</td>
+                            <td>상온/저온, 초대형</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-center text-gray-700 leading-relaxed max-w-3xl mx-auto mt-8">
+                연면적 10만㎡ 이상 대형 물류센터 개발이 활발하며, 건설 기간은 규모 외에도 시설 복잡성, 공법 등에 따라 큰 차이를 보입니다. PFV를 통한 자금 조달 및 선매입 계약 사례도 다수 나타납니다.
+            </p>
+        </section>
+
+        <hr class="my-16 border-gray-300">
+
+        <section id="scale-features" class="pt-16 -mt-16">
+            <h2 class="section-title">현대 물류센터의 규모 및 특징</h2>
+             <p class="text-center text-lg text-gray-600 mb-12 max-w-3xl mx-auto">
+                최근 신규 공급되는 물류센터는 대형화 추세가 뚜렷하며, 운영 효율성을 극대화하기 위한 특화 설비를 갖추고 있습니다.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                <div class="card">
+                    <h3 class="text-xl font-semibold mb-3 text-gray-700">대형화 추세</h3>
+                    <p class="text-gray-600 mb-2">이커머스 성장과 효율적 배송망 구축 필요성으로 <strong>10만㎡ 이상</strong> 대규모 시설 개발이 활발합니다.</p>
+                    <ul class="list-disc list-inside text-gray-600 space-y-1 text-sm">
+                        <li>청라로지스틱스센터: 430,253㎡</li>
+                        <li>쿠팡 대구물류센터: 329,868㎡</li>
+                        <li>북천안 스마트 물류센터 (예정): 약 396,000㎡</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3 class="text-xl font-semibold mb-3 text-gray-700">주요 특징 및 복잡성</h3>
+                    <p class="text-gray-600 mb-2">단순 규모 외에도 내부 설비의 특수성이 중요합니다.</p>
+                    <ul class="list-disc list-inside text-gray-600 space-y-1 text-sm">
+                        <li>전 층 자주식 접안 시스템</li>
+                        <li>냉장·냉동·상온 복합 구성</li>
+                        <li>상·하행 분리 램프, 양면 도크 시스템</li>
+                        <li>자동화 설비</li>
+                    </ul>
+                    <p class="text-gray-600 mt-3 text-sm">이러한 복잡성은 건설 기간에 영향을 미치며, 저온 시설은 동일 규모 상온 시설보다 기간이 더 소요될 수 있습니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <hr class="my-16 border-gray-300">
+
+        <section id="outlook" class="pt-16 -mt-16">
+            <h2 class="section-title">결론 및 시장 전망</h2>
+            <div class="card max-w-4xl mx-auto">
+                <p class="text-gray-700 leading-relaxed mb-4">
+                    국내 물류센터 시장은 활발한 신규 공급 이면에 개발 프로젝트의 착수 지연이라는 이중적 모습을 보입니다. 물리적 건설 기간은 대형 센터 기준 10~24개월 내외지만, 현재는 착공 전 단계의 지연이 전체 프로젝트 기간을 늘리는 주된 원인입니다.
+                </p>
+                <p class="text-gray-700 leading-relaxed mb-4">
+                    금리, 공사비, PF 시장 경색으로 인해 "잠재적 공급 물량"이 상당수 누적되어 향후 공급 시점의 불확실성이 높습니다. 2024년 신규 공급량 감소 전망도 이러한 어려움을 반영합니다.
+                </p>
+                <p class="text-gray-700 leading-relaxed font-semibold mb-2">
+                    향후 시장 전망:
+                </p>
+                <ul class="list-disc list-inside text-gray-700 space-y-1 mb-4">
+                    <li>개발 프로젝트의 양극화 심화 가능성 (자금력, 선임차 확보 여부가 관건)</li>
+                    <li>안정적인 PF 조달 능력 및 선임차 확보가 프로젝트 성패 핵심 요소</li>
+                    <li>착공 전 단계의 어려움 극복이 적시 공급의 중요 과제</li>
+                </ul>
+                <p class="text-gray-700 leading-relaxed">
+                    투자자와 개발 사업자는 시장 동향을 면밀히 분석하고, 리스크 관리와 함께 사업 기회를 모색하는 신중한 접근이 요구됩니다.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-8 mt-12 bg-gray-800 text-gray-300">
+        <p class="text-sm">본 인포그래픽은 제공된 "최근 국내 물류센터 개발 동향" 보고서 내용을 기반으로 제작되었습니다.</p>
+        <p class="text-xs mt-1">정보 제공 목적으로 제작되었으며, 투자 결정의 근거로 활용될 수 없습니다.</p>
+    </footer>
+
+    <script>
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.4 
+        };
+
+        function highlightNavLink(id) {
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#\${id}`) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    highlightNavLink(entry.target.id);
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                if(targetSection){
+                    // Manually set active class on click for immediate feedback
+                    navLinks.forEach(lnk => lnk.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Scroll into view
+                    // The -60 is an offset for the sticky header height
+                    const headerOffset = 70; // Adjust this value if your header height changes
+                    const elementPosition = targetSection.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                         top: offsetPosition,
+                         behavior: "smooth"
+                    });
+                }
+            });
+        });
+
+
+        function wrapLabels(labels, maxWidth) {
+            return labels.map(label => {
+                if (typeof label === 'string' && label.length > maxWidth) {
+                    const words = label.split(' ');
+                    const lines = [];
+                    let currentLine = '';
+                    words.forEach(word => {
+                        if ((currentLine + word).length > maxWidth) {
+                            lines.push(currentLine.trim());
+                            currentLine = '';
+                        }
+                        currentLine += word + ' ';
+                    });
+                    lines.push(currentLine.trim());
+                    return lines;
+                }
+                return label;
+            });
+        }
+        
+        const commonTooltipTitleCallback = function(tooltipItems) {
+            const item = tooltipItems[0];
+            let label = item.chart.data.labels[item.dataIndex];
+            if (Array.isArray(label)) {
+                return label.join(' ');
+            }
+            return label;
+        };
+
+        // Chart 1: Approval vs Starts
+        const approvalStartsCtx = document.getElementById('approvalStartsChart').getContext('2d');
+        new Chart(approvalStartsCtx, {
+            type: 'bar',
+            data: {
+                labels: wrapLabels(['건축허가 (건)', '실제 착공 (건)', '완공 (건)'], 10),
+                datasets: [{
+                    label: '2023년 현황',
+                    data: [357, 14, 2],
+                    backgroundColor: ['#4A90E2', '#50E3C2', '#F5A623'],
+                    borderColor: ['#3B82F6', '#10B981', '#D97706'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: '건수' } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { title: commonTooltipTitleCallback } }
+                }
+            }
+        });
+
+        // Chart 2: Duration Scatter Plot
+        const durationScatterCtx = document.getElementById('durationScatterChart').getContext('2d');
+        const scatterData = [
+            { x: 54000, y: 12, name: 'A물류센터 (5.4만㎡, 12개월)' },
+            { x: 54756, y: 15, name: '현대건설 창원 두동 (5.5만㎡, 15개월)' },
+            { x: 149000, y: 20.5, name: '현대건설 인천 검단 (14.9만㎡, 20.5개월)' },
+            { x: 187227, y: 10, name: '안성 대덕 A동 (18.7만㎡, 10개월)' }
+        ];
+        new Chart(durationScatterCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: '물류센터',
+                    data: scatterData,
+                    backgroundColor: '#FF6B6B', // Coral
+                    borderColor: '#CC5656',
+                    pointRadius: 8,
+                    pointHoverRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { 
+                        type: 'linear', 
+                        position: 'bottom', 
+                        title: { display: true, text: '연면적 (㎡)' },
+                        ticks: { callback: function(value) { return (value/10000).toFixed(1) + '만'; } } 
+                    },
+                    y: { title: { display: true, text: '건설 소요 기간 (개월)' }, beginAtZero: true }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const item = context.raw;
+                                return item.name;
+                            },
+                             title: function(tooltipItems) { return '';} // No title for scatter points
+                        }
+                    }
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
